@@ -185,7 +185,7 @@ async function sendPasswordReset(){
   const email=document.getElementById('resetEmail').value.trim();
   if(!email)return authMessage('請先輸入註冊時使用的 Email。');
   authMessage('正在寄送密碼重設信…');
-  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:'https://tina1133332021-byte.github.io/MyLIFE/'});
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:'https://cyting99.github.io/MyLIFE/'});
   if(error)authMessage('寄送失敗：'+error.message);
   else authMessage('重設信已寄出，請到信箱開啟最新一封信。');
 }

@@ -47,8 +47,8 @@
   <button class="primary" style="width:100%;padding:12px" onclick="updatePassword()">儲存新密碼</button>
 </div>
 </div></section>
-<main class="app hidden" id="mainApp">
-<header class="top"><div class="brand">My Life OS<small>PERSONAL LIFE MANAGEMENT · v20.3</small></div><div class="actions" style="align-items:center"><button class="secondary" id="installAppBtn" onclick="installMyLifeOS()" style="display:none;font-size:11px">安裝 App</button><button class="secondary" id="accountButton" onclick="signOut()" style="font-size:11px">登出</button></div></header>
+<main class="app hidden" id="mainApp" aria-hidden="true">
+<header class="top"><div class="brand">My Life OS<small>PERSONAL LIFE MANAGEMENT · v20.4</small></div><div class="actions" style="align-items:center"><button class="secondary" id="installAppBtn" onclick="installMyLifeOS()" style="display:none;font-size:11px">安裝 App</button><button class="secondary" id="accountButton" onclick="signOut()" style="font-size:11px">登出</button></div></header>
 <section id="home" class="page active">
 <div class="hero"><div class="eyebrow" id="todayDate">PERSONAL DASHBOARD</div><h1>今天，想先處理什麼？</h1><p>工作、生活與重要事項，都從這裡開始。</p><div class="stats"><div class="stat"><b id="taskCount">0</b><span>未完成待辦</span></div><div class="stat"><b id="eventCount">0</b><span>今日行程</span></div><div class="stat"><b id="expenseTotal">$0</b><span>本月支出</span></div></div></div>
 <div class="section"><div class="section-head"><h2>近期行程</h2><button class="mini-btn" onclick="showPage('tasks')">開啟行事曆</button></div><div class="card" id="homeCalendarPreview"><div class="empty">新增行程後，這裡會顯示近期安排。</div></div></div>
@@ -185,7 +185,7 @@
 <div class="section"><div class="section-head"><h2>我的占卜紀錄</h2><button class="mini-btn" onclick="loadOracleReadings()">重新整理</button></div><div class="card" id="oracleReadingList"><div class="empty">尚無占卜紀錄</div></div></div></section>
 <section id="reports" class="page"><h1 class="page-title">每週回顧</h1><p class="page-desc">根據目前已保存的資料產生簡易摘要。</p><div class="card" id="reportContent"></div><button class="primary" style="margin-top:12px" onclick="renderReport()">重新整理報告</button></section>
 </main>
-<nav class="bottom"><div class="nav"><button class="active" data-page="home" onclick="showPage('home',this)"><span>⌂</span>首頁</button><button data-page="tasks" onclick="showPage('tasks',this)"><span>☷</span>待辦</button><button data-page="chat" onclick="showPage('chat',this)"><span>✧</span>管家</button><button data-page="work" onclick="showPage('work',this)"><span>💼</span>工作</button><button data-page="life" onclick="showPage('life',this)"><span>🌱</span>生活</button><button data-page="finance" onclick="showPage('finance',this)"><span>◉</span>記帳</button><button data-page="romance" onclick="showPage('romance',this)"><span>💗</span>感情</button><button data-page="fandom" onclick="showPage('fandom',this)"><span>🎫</span>追星</button><button data-page="savedposts" onclick="showPage('savedposts',this)"><span>🔖</span>收藏庫</button><button data-page="oracle" onclick="showPage('oracle',this)"><span>🔮</span>占卜</button></div></nav>
+<nav class="bottom"><div class="nav"><button class="active" data-page="home" onclick="showPage('home',this)"><span>⌂</span>首頁</button><button data-page="tasks" onclick="showPage('tasks',this)"><span>☷</span>待辦</button><button data-page="chat" onclick="showPage('chat',this)"><span>✧</span>管家</button><button data-page="work" onclick="showPage('work',this)"><span>💼</span>工作</button><button data-page="life" onclick="showPage('life',this)"><span>🌱</span>生活</button><button data-page="finance" onclick="showPage('finance',this)"><span>◉</span>記帳</button><button data-page="romance" onclick="showPage('romance',this)"><span>💗</span>感情</button><button data-page="fandom" onclick="showPage('fandom',this)"><span>🎫</span>追星</button></div></nav>
 <div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="sheet" id="sheet"></div></div><div class="toast" id="toast"></div>
 <script>
 // Supabase 前端連線設定：只填 Project URL 與 Publishable key；絕對不要放 Secret/service_role key。
@@ -194,25 +194,47 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_eYcbwpevt6mFVop31GInjQ_SuSn4wKY
 let supabaseClient = null;
 function authMessage(msg){const el=document.getElementById('authStatus');if(el)el.textContent=msg;}
 function supabaseReady(){return SUPABASE_URL.startsWith('https://') && SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_');}
+let authLoadToken=0, authLoadInProgress=false;
+function emptyPersonalDB(){return {tasks:[],expenses:[],notes:[],messages:[],worklogs:[]};}
+function clearAccountScopedState(){
+  cloudReady=false;loadingUserId=null;chatLoadedForUser=null;
+  db=emptyPersonalDB();
+  monthlyBudgets=[];personalRecords={fandom:[],romance:[]};concertTickets=[];
+  calendarEvents=[];calendarConnected=false;financeInbox=[];lifeItems=[];savedPosts=[];
+  oracleDraft=null;oracleBusy=false;
+  // 保留舊版未同步的本機快取作為復原資料；新版本不會在登入前讀取或顯示它。
+  const ids=['calendarGrid','homeCalendarPreview','savedPostList','oracleReadingList','ticketList','financeInboxList','lifeItemsList'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="empty">登入後載入個人資料</div>';});
+}
+function showAuthScreen(message){
+  document.getElementById('authPanel').classList.remove('hidden');
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('mainApp').setAttribute('aria-hidden','true');
+  if(message)authMessage(message);
+}
 async function initAuth(){
   if(!supabaseReady()){authMessage('尚未設定連線資訊：請在程式碼中填入 Project URL 與 Publishable key。');return;}
   if(!window.supabase){authMessage('Supabase 元件載入失敗，請確認網路連線後重新整理。');return;}
   supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-  const {data,error}=await supabaseClient.auth.getSession();
-  if(error){authMessage('連線檢查失敗：'+error.message);return;}
-  if(data.session){showSignedIn(data.session.user);}else{document.getElementById('authPanel').classList.remove('hidden');document.getElementById('mainApp').classList.add('hidden');authMessage('連線成功，請登入或建立帳號。');}
+  // 先訂閱登入狀態，再讀取 session，避免初始化期間漏接帳號切換事件。
   supabaseClient.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){
-      document.getElementById('authPanel').classList.remove('hidden');
-      document.getElementById('mainApp').classList.add('hidden');
+      showAuthScreen();
       document.getElementById('forgotPanel').classList.add('hidden');
       document.getElementById('newPasswordPanel').classList.remove('hidden');
       authMessage('驗證成功，請設定新密碼。');
       return;
     }
-    if(session)showSignedIn(session.user);
-    else{currentUser=null;cloudReady=false;loadingUserId=null;document.getElementById('authPanel').classList.remove('hidden');document.getElementById('mainApp').classList.add('hidden');}
+    if(session) void showSignedIn(session.user);
+    else{
+      authLoadToken++;authLoadInProgress=false;currentUser=null;clearAccountScopedState();
+      showAuthScreen('已登出，請登入或建立帳號。');
+    }
   });
+  const {data,error}=await supabaseClient.auth.getSession();
+  if(error){showAuthScreen('連線檢查失敗：'+error.message);return;}
+  if(data.session) await showSignedIn(data.session.user);
+  else showAuthScreen('連線成功，請登入或建立帳號。');
 }
 function showForgotPassword(){
   document.getElementById('forgotPanel').classList.remove('hidden');
@@ -231,88 +253,107 @@ async function sendPasswordReset(){
   if(!email)return authMessage('請先輸入註冊時使用的 Email。');
   authMessage('正在寄送密碼重設信…');
   const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:'https://cyting99.github.io/MyLIFE/'});
-  if(error)authMessage('寄送失敗：'+error.message);
-  else authMessage('重設信已寄出，請到信箱開啟最新一封信。');
+  if(error)authMessage('寄送失敗：'+error.message);else authMessage('重設信已寄出，請到信箱開啟最新一封信。');
 }
 async function updatePassword(){
-  const password=document.getElementById('newPassword').value;
-  const confirm=document.getElementById('confirmNewPassword').value;
+  const password=document.getElementById('newPassword').value,confirmPassword=document.getElementById('confirmNewPassword').value;
   if(password.length<6)return authMessage('新密碼至少需要 6 個字元。');
-  if(password!==confirm)return authMessage('兩次輸入的密碼不一致，請重新確認。');
+  if(password!==confirmPassword)return authMessage('兩次輸入的密碼不一致，請重新確認。');
   authMessage('正在更新密碼…');
   const {error}=await supabaseClient.auth.updateUser({password});
   if(error)authMessage('密碼更新失敗：'+error.message);
-  else{
-    document.getElementById('newPasswordPanel').classList.add('hidden');
-    document.getElementById('forgotPanel').classList.add('hidden');
-    document.getElementById('authPassword').value='';
-    authMessage('密碼已更新，請使用新密碼登入。');
-    await supabaseClient.auth.signOut();
-  }
+  else{document.getElementById('newPasswordPanel').classList.add('hidden');document.getElementById('forgotPanel').classList.add('hidden');document.getElementById('authPassword').value='';authMessage('密碼已更新，請使用新密碼登入。');await supabaseClient.auth.signOut();}
 }
 let currentUser=null, cloudReady=false, loadingUserId=null;
 async function showSignedIn(user){
-  currentUser=user;
-  document.getElementById('authPanel').classList.add('hidden');
-  document.getElementById('mainApp').classList.remove('hidden');
-  const b=document.getElementById('accountButton');
-  if(b)b.textContent='登出・'+(user.email||'帳號');
-  if(loadingUserId===user.id && cloudReady){renderAll();handleCalendarReturn();loadCalendar();return;}
-  loadingUserId=user.id; cloudReady=false;
-  showToast('正在載入雲端資料…');
+  if(!user?.id)return;
+  if(loadingUserId===user.id && (cloudReady||authLoadInProgress))return;
+  const changedUser=!!currentUser&&currentUser.id!==user.id;
+  if(!currentUser||changedUser||loadingUserId!==user.id){
+    authLoadToken++;clearAccountScopedState();
+  }
+  currentUser=user;loadingUserId=user.id;cloudReady=false;authLoadInProgress=true;
+  // 主畫面必須等該帳號全部資料載入成功後才顯示。
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('mainApp').setAttribute('aria-hidden','true');
+  document.getElementById('authPanel').classList.remove('hidden');
+  authMessage('正在安全載入此帳號的資料…');
+  const token=authLoadToken,uid=user.id;
+  const b=document.getElementById('accountButton');if(b)b.textContent='登出・'+(user.email||'帳號');
   try{
-    await loadCloudData();
-    await loadBudgets();
-    await loadLifeItems();
-    await loadFinanceInbox();
-    await loadSavedPosts();
-    await loadPersonalRecords();
-    await loadConcertTickets();
-    await loadSavedChatHistory();
+    await loadCloudData();if(token!==authLoadToken||currentUser?.id!==uid)return;
+    await loadBudgets();if(token!==authLoadToken||currentUser?.id!==uid)return;
+    await loadLifeItems();if(token!==authLoadToken||currentUser?.id!==uid)return;
+    await loadFinanceInbox();if(token!==authLoadToken||currentUser?.id!==uid)return;
+    await loadSavedPosts();if(token!==authLoadToken||currentUser?.id!==uid)return;
+    await loadPersonalRecords();if(token!==authLoadToken||currentUser?.id!==uid)return;
+    await loadConcertTickets();if(token!==authLoadToken||currentUser?.id!==uid)return;
+    await loadSavedChatHistory();if(token!==authLoadToken||currentUser?.id!==uid)return;
     cloudReady=true;
-    await refreshFinanceInbox();
+    await refreshFinanceInbox();if(token!==authLoadToken||currentUser?.id!==uid)return;
     renderAll();
-    showToast('雲端資料載入完成');
+    document.getElementById('authPanel').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('mainApp').setAttribute('aria-hidden','false');
+    authLoadInProgress=false;
     handleCalendarReturn();
-    loadCalendar();
+    await loadCalendar();
+    if(token===authLoadToken&&currentUser?.id===uid)showToast('雲端資料載入完成');
   }catch(e){
-    cloudReady=false;
-    renderAll();
-    showToast('雲端讀取失敗：'+(e.message||'請重新登入'));
-    handleCalendarReturn();
-    console.error('loadCloudData',e);
+    if(token!==authLoadToken)return;
+    cloudReady=false;authLoadInProgress=false;
+    clearAccountScopedState();currentUser=null;
+    showAuthScreen('雲端資料載入失敗，為保護帳號資料已停止顯示主畫面：'+(e.message||'請重新登入'));
+    console.error('account data load',e);
   }
 }
-async function signIn(){if(!supabaseClient)return authMessage('尚未設定 Supabase 連線資訊。');const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password)return authMessage('請輸入 Email 和密碼。');authMessage('登入中…');const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)authMessage('登入失敗：'+error.message);else showSignedIn(data.user);}
-async function signUp(){if(!supabaseClient)return authMessage('尚未設定 Supabase 連線資訊。');const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||password.length<6)return authMessage('請輸入有效 Email，密碼至少 6 個字元。');authMessage('正在建立帳號…');const {data,error}=await supabaseClient.auth.signUp({email,password});if(error)authMessage('建立帳號失敗：'+error.message);else if(data.session)showSignedIn(data.user);else authMessage('帳號已建立。若尚未自動登入，請使用 Email 和密碼登入。');}
-async function signOut(){if(!supabaseClient)return;chatLoadedForUser=null;cloudReady=false;currentUser=null;loadingUserId=null;const {error}=await supabaseClient.auth.signOut();if(error)showToast('登出失敗：'+error.message);else{document.getElementById('authPanel').classList.remove('hidden');document.getElementById('mainApp').classList.add('hidden');authMessage('已登出。');}}
-const KEY='mylifeos_v1';let db=load();
+async function signIn(){
+  if(!supabaseClient)return authMessage('尚未設定 Supabase 連線資訊。');
+  const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
+  if(!email||!password)return authMessage('請輸入 Email 和密碼。');
+  authMessage('登入中…');const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error)authMessage('登入失敗：'+error.message);else if(data.user)await showSignedIn(data.user);
+}
+async function signUp(){
+  if(!supabaseClient)return authMessage('尚未設定 Supabase 連線資訊。');
+  const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
+  if(!email||password.length<6)return authMessage('請輸入有效 Email，密碼至少 6 個字元。');
+  authMessage('正在建立帳號…');const {data,error}=await supabaseClient.auth.signUp({email,password});
+  if(error)authMessage('建立帳號失敗：'+error.message);
+  else if(data.session&&data.user)await showSignedIn(data.user);
+  else authMessage('帳號已建立。請到 Email 完成驗證，再使用新帳號登入。');
+}
+async function signOut(){
+  if(!supabaseClient)return;
+  authLoadToken++;authLoadInProgress=false;currentUser=null;clearAccountScopedState();
+  showAuthScreen('正在登出…');
+  const {error}=await supabaseClient.auth.signOut();
+  if(error)authMessage('登出失敗：'+error.message);else authMessage('已登出。');
+}
+const KEY='mylifeos_v1';let db=emptyPersonalDB();
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{tasks:[],expenses:[],notes:[],messages:[],worklogs:[]}}catch(e){return{tasks:[],expenses:[],notes:[],messages:[],worklogs:[]}}}
 function id(){return (crypto.randomUUID?crypto.randomUUID():('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)})))}
 function save(){
-  localStorage.setItem(KEY,JSON.stringify(db));
+  if(currentUser?.id)localStorage.setItem(KEY+'_'+currentUser.id,JSON.stringify(db));
   renderAll();
   if(cloudReady && currentUser) pushCloudData().catch(e=>{console.error('pushCloudData',e);showToast('雲端儲存失敗：'+(e.message||'請稍後重試'));});
 }
 async function loadCloudData(){
   if(!supabaseClient||!currentUser) throw new Error('尚未登入');
-  const localSnapshot=load();
-  const hasLocalData=['tasks','expenses','notes','worklogs'].some(k=>(localSnapshot[k]||[]).length>0);
-  if(hasLocalData) localStorage.setItem('mylifeos_v1_local_backup_before_cloud',JSON.stringify(localSnapshot));
-  const uid=currentUser.id;
+  const uid=currentUser.id, token=authLoadToken;
   const [tr,er,nr,wr]=await Promise.all([
-    supabaseClient.from('tasks').select('*').order('created_at',{ascending:false}),
-    supabaseClient.from('expenses').select('*').order('spent_on',{ascending:false}),
-    supabaseClient.from('notes').select('*').order('updated_at',{ascending:false}),
-    supabaseClient.from('work_logs').select('*').order('log_date',{ascending:false})
+    supabaseClient.from('tasks').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    supabaseClient.from('expenses').select('*').eq('user_id',uid).order('spent_on',{ascending:false}),
+    supabaseClient.from('notes').select('*').eq('user_id',uid).order('updated_at',{ascending:false}),
+    supabaseClient.from('work_logs').select('*').eq('user_id',uid).order('log_date',{ascending:false})
   ]);
   for(const r of [tr,er,nr,wr]) if(r.error) throw r.error;
+  if(token!==authLoadToken||currentUser?.id!==uid)return;
   db.tasks=(tr.data||[]).map(x=>({id:x.id,title:x.title,category:x.category,due:x.due_date||'',dueTime:(x.due_time||'').slice(0,5),mins:x.estimated_minutes||30,priority:x.priority||'medium',done:x.status==='done',created:new Date(x.created_at).getTime()}));
   db.expenses=(er.data||[]).map(x=>({id:x.id,title:x.title,amount:Number(x.amount),category:x.category,date:x.spent_on,type:x.transaction_type||'expense',note:x.note||''}));
   db.notes=(nr.data||[]).map(x=>({id:x.id,title:x.title,body:x.content,date:(x.created_at||'').slice(0,10),category:x.category}));
   db.worklogs=(wr.data||[]).map(x=>({id:x.id,text:x.content,date:x.log_date,minutes:Number(x.minutes_spent)||0}));
-  localStorage.setItem(KEY,JSON.stringify(db));
-  if(hasLocalData) console.info('原本的本機資料已另存於 mylifeos_v1_local_backup_before_cloud，尚未自動匯入雲端。');
+  localStorage.setItem(KEY+'_'+uid,JSON.stringify(db));
 }
 async function pushCloudData(){
   if(!supabaseClient||!currentUser) throw new Error('尚未登入');
@@ -341,7 +382,7 @@ function previewBudget(){const x=budgetNumbers(),fmt=money;const set=(id,v)=>{co
 function renderBudget(){const m=currentBudgetMonth(),row=monthlyBudgets.find(x=>(x.month||'').slice(0,7)===m);document.getElementById('budgetIncome').value=row?.income??'';document.getElementById('budgetFixed').value=row?.fixed_expenses??'';document.getElementById('budgetMethod').value=row?.method||'50-30-20';const r=row?.ratios||presetBudget(document.getElementById('budgetMethod').value);document.getElementById('ratioNeed').value=r.need??50;document.getElementById('ratioWant').value=r.want??30;document.getElementById('ratioSave').value=r.save??20;document.getElementById('ratioInvest').value=r.invest??0;document.getElementById('budgetSavedStatus').textContent=row?'已載入雲端設定':'尚未設定';document.getElementById('budgetSaveButton').textContent=row?'更新本月預算':'儲存本月預算';document.getElementById('budgetDeleteButton').style.display=row?'block':'none';document.getElementById('budgetSavedList').innerHTML=monthlyBudgets.length?'<b>已保存的月份（可選擇編輯或刪除）</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">'+monthlyBudgets.slice().sort((a,b)=>(b.month||'').localeCompare(a.month||'')).map(b=>`<span style="display:inline-flex;align-items:center;gap:4px;background:#f5f7f9;border:1px solid var(--line);border-radius:9px;padding:5px 7px"><button class="mini-btn" onclick="editBudgetMonth('${(b.month||'').slice(0,7)}')">${(b.month||'').slice(0,7)}・編輯</button><button class="mini-btn danger" onclick="deleteBudget('${(b.month||'').slice(0,7)}')">刪除</button></span>`).join('')+'</div>':'目前沒有已保存的月份。';updateBudgetLabels();previewBudget()}
 function editBudgetMonth(month){document.getElementById('budgetMonth').value=month;renderBudget();document.getElementById('budgetIncome').focus();showToast('已載入 '+month+' 預算，可修改後按「更新本月預算」') }
 async function deleteBudget(month=currentBudgetMonth()){if(!supabaseClient||!currentUser||!cloudReady)return showToast('請先登入並等待雲端資料載入完成');const row=monthlyBudgets.find(b=>(b.month||'').slice(0,7)===month);if(!row)return showToast('這個月份沒有已保存的預算');if(!confirm(`確定刪除 ${month} 的預算設定嗎？此操作無法復原，但不會刪除你的記帳紀錄。`))return;try{const {error}=await supabaseClient.from('monthly_budgets').delete().eq('id',row.id).eq('user_id',currentUser.id);if(error)throw error;monthlyBudgets=monthlyBudgets.filter(b=>b.id!==row.id);if(month===currentBudgetMonth()){document.getElementById('budgetIncome').value='';document.getElementById('budgetFixed').value='';document.getElementById('budgetMethod').value='50-30-20';applyBudgetPreset()}renderBudget();showToast(`${month} 預算已從雲端刪除；記帳紀錄保留`)}catch(e){console.error('deleteBudget',e);showToast('刪除失敗：'+(e.message||'請檢查雲端權限'))}}
-async function loadBudgets(){if(!supabaseClient||!currentUser)return;const {data,error}=await supabaseClient.from('monthly_budgets').select('*').order('month',{ascending:false});if(error)throw error;monthlyBudgets=data||[];renderBudget()}
+async function loadBudgets(){if(!supabaseClient||!currentUser)return;const uid=currentUser.id,token=authLoadToken;const {data,error}=await supabaseClient.from('monthly_budgets').select('*').eq('user_id',uid).order('month',{ascending:false});if(error)throw error;if(token!==authLoadToken||currentUser?.id!==uid)return;monthlyBudgets=data||[];renderBudget()}
 async function saveBudget(){if(!supabaseClient||!currentUser||!cloudReady)return showToast('請先登入並等待雲端資料載入完成');const x=budgetNumbers();if(!Number.isFinite(x.income)||x.income<=0)return showToast('請輸入有效的每月實領薪水');if(x.total<99.99||x.total>100.01)return showToast('四項比例合計必須為 100%');if(x.fixed<0)return showToast('固定支出不可小於 0');const payload={user_id:currentUser.id,month:currentBudgetMonth()+'-01',income:x.income,fixed_expenses:x.fixed,method:document.getElementById('budgetMethod').value,ratios:{need:x.need,want:x.want,save:x.save,invest:x.invest},updated_at:new Date().toISOString()};try{const {data,error}=await supabaseClient.from('monthly_budgets').upsert(payload,{onConflict:'user_id,month'}).select().single();if(error)throw error;monthlyBudgets=[...monthlyBudgets.filter(b=>(b.month||'').slice(0,7)!==currentBudgetMonth()),data];document.getElementById('budgetSavedStatus').textContent='已保存至雲端';previewBudget();showToast('本月預算已保存至雲端')}catch(e){console.error('saveBudget',e);showToast('預算保存失敗：'+(e.message||'請檢查資料表與 RLS 設定'))}}
 function money(n){return 'NT$ '+Number(n||0).toLocaleString('zh-TW')}
 function taipeiDateParts(date=new Date()){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);const o={};p.forEach(x=>{if(x.type!=='literal')o[x.type]=x.value});return o}
@@ -351,9 +392,11 @@ function taipeiDateTime(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia
 let personalRecords = { fandom: [], romance: [] };
 async function loadPersonalRecords(){
   if(!supabaseClient || !currentUser) return;
+  const uid=currentUser.id,token=authLoadToken;
   const {data,error}=await supabaseClient.from('personal_records').select('*')
-    .in('department',['fandom','romance']).order('event_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
+    .eq('user_id',uid).in('department',['fandom','romance']).order('event_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
   if(error) throw error;
+  if(token!==authLoadToken||currentUser?.id!==uid)return;
   personalRecords={fandom:[],romance:[]};
   (data||[]).forEach(r=>{if(personalRecords[r.department])personalRecords[r.department].push(r);});
   renderPersonalRecords('fandom'); renderPersonalRecords('romance');
@@ -410,9 +453,13 @@ function showTimeTreeGuide(){openModal(`<h3>TimeTree 使用方式</h3><div class
 let concertTickets=[];
 async function loadConcertTickets(){
   if(!supabaseClient||!currentUser)return;
-  const {data,error}=await supabaseClient.from('concert_tickets').select('*').order('event_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
+  const uid=currentUser.id,token=authLoadToken;
+  const {data,error}=await supabaseClient.from('concert_tickets').select('*').eq('user_id',uid).order('event_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
   if(error)throw error;
-  concertTickets=await Promise.all((data||[]).map(async r=>{let poster='';if(r.poster_path){const {data:signed}=await supabaseClient.storage.from('concert-ticket-posters').createSignedUrl(r.poster_path,3600);poster=signed?.signedUrl||'';}return {...r,poster_url:poster};}));
+  if(token!==authLoadToken||currentUser?.id!==uid)return;
+  const loadedTickets=await Promise.all((data||[]).map(async r=>{let poster='';if(r.poster_path){const {data:signed}=await supabaseClient.storage.from('concert-ticket-posters').createSignedUrl(r.poster_path,3600);poster=signed?.signedUrl||'';}return {...r,poster_url:poster};}));
+  if(token!==authLoadToken||currentUser?.id!==uid)return;
+  concertTickets=loadedTickets;
   renderConcertTickets();
 }
 function renderConcertTickets(){
@@ -535,9 +582,11 @@ let chatLoadedForUser=null;
 function chatHistoryElement(dept){return document.getElementById(CHAT_TARGETS[dept]||'chatHistory');}
 async function loadSavedChatHistory(){
   if(!supabaseClient||!currentUser)return;
-  const {data,error}=await supabaseClient.from('ai_chat_messages').select('department,role,content,created_at')
+  const uid=currentUser.id,token=authLoadToken;
+  const {data,error}=await supabaseClient.from('ai_chat_messages').select('department,role,content,created_at').eq('user_id',uid)
     .order('created_at',{ascending:true}).limit(500);
   if(error)throw error;
+  if(token!==authLoadToken||currentUser?.id!==uid)return;
   const groups={};
   (data||[]).forEach(m=>{(groups[m.department] ||= []).push(m);});
   Object.entries(CHAT_TARGETS).forEach(([dept,id])=>{
@@ -670,22 +719,26 @@ function updateCalendarStatus(){
 }
 function monthRange(){const start=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth(),1);const end=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+1,1);return {timeMin:start.toISOString(),timeMax:end.toISOString()};}
 async function loadCalendar(){
-  if(!supabaseClient||!currentUser)return;
+  if(!supabaseClient||!currentUser||!cloudReady)return;
+  const uid=currentUser.id, requestToken=authLoadToken;
   let localEvents=[];
   try{
-    const {data,error}=await supabaseClient.from('calendar_events').select('*').gte('starts_at',new Date(calendarMonth.getFullYear(),calendarMonth.getMonth(),1).toISOString()).lt('starts_at',new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+1,1).toISOString()).order('starts_at');
+    const {data,error}=await supabaseClient.from('calendar_events').select('*').gte('starts_at',new Date(calendarMonth.getFullYear(),calendarMonth.getMonth(),1).toISOString()).lt('starts_at',new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+1,1).toISOString()).eq('user_id',uid).order('starts_at');
     if(error)throw error;
+    if(requestToken!==authLoadToken||currentUser?.id!==uid)return;
     localEvents=(data||[]).map(x=>({id:x.id,summary:x.title,start:{dateTime:x.starts_at},end:{dateTime:x.ends_at},location:x.location||'',description:x.description||'',source:'local',google_event_id:x.google_event_id||null}));
   }catch(e){console.error('local calendar load',e);showToast('網站行程讀取失敗：'+e.message);return;}
+  if(requestToken!==authLoadToken||currentUser?.id!==uid)return;
   calendarConnected=false;
   try{
-    const st=await calendarApi('status');calendarConnected=!!st.connected;
+    const st=await calendarApi('status');if(requestToken!==authLoadToken||currentUser?.id!==uid)return;calendarConnected=!!st.connected;
   }catch(e){console.warn('Google status unavailable; keep local calendar active',e);}
   let googleEvents=[];
   if(calendarConnected){
     try{const r=await calendarApi('list',monthRange());googleEvents=(Array.isArray(r.events)?r.events:[]).map(e=>({...e,source:'google'}));}
     catch(e){console.error(e);showToast('Google 同步暫時失敗，網站行程仍可使用：'+e.message);}
   }
+  if(requestToken!==authLoadToken||currentUser?.id!==uid)return;
   const linkedIds=new Set(localEvents.map(e=>e.google_event_id).filter(Boolean));
   googleEvents=googleEvents.filter(e=>!linkedIds.has(e.id));
   calendarEvents=[...localEvents,...googleEvents].sort((a,b)=>eventStart(a).localeCompare(eventStart(b)));
@@ -769,13 +822,13 @@ function editNote(x){const n=db.notes.find(v=>v.id===x);if(!n)return;openModal(`
 function saveNoteEdit(x){const n=db.notes.find(v=>v.id===x);if(!n)return;const title=document.getElementById('enTitle').value.trim(),body=document.getElementById('enBody').value.trim();if(!title&&!body)return showToast('筆記標題或內容至少填一項');Object.assign(n,{title:title||'未命名筆記',body});closeModal();save();showToast('筆記已修改並同步雲端')}
 function editWorkLog(x){const w=db.worklogs.find(v=>v.id===x);if(!w)return;openModal(`<h3>編輯工作紀錄</h3><div class="field"><label>日期</label><input id="ewDate" type="date" value="${esc(w.date||today())}"></div><div class="field"><label>工作內容</label><textarea id="ewContent">${esc(w.text)}</textarea></div><div class="field"><label>花費時間（分鐘）</label><input id="ewMinutes" type="number" min="0" step="5" value="${Number(w.minutes)||0}"></div><button class="primary" onclick="saveWorkLogEdit('${w.id}')">儲存修改</button>`)}
 function saveWorkLogEdit(x){const w=db.worklogs.find(v=>v.id===x);if(!w)return;const text=document.getElementById('ewContent').value.trim();if(!text)return showToast('工作內容不能空白');Object.assign(w,{date:document.getElementById('ewDate').value||today(),text,minutes:Math.max(0,Number(document.getElementById('ewMinutes').value)||0)});closeModal();save();showToast('工作紀錄已修改並同步雲端')}
-async function deleteRecord(kind,x){const tableMap={tasks:'tasks',expenses:'expenses',notes:'notes',worklogs:'work_logs'},arr=db[kind];if(!tableMap[kind]||!arr)return;if(!confirm('確定要永久刪除這筆資料？刪除後無法復原。'))return;try{if(!currentUser||!cloudReady||!supabaseClient)throw new Error('雲端尚未就緒，請重新登入後再刪除');const {error}=await supabaseClient.from(tableMap[kind]).delete().eq('id',x).eq('user_id',currentUser.id);if(error)throw error;db[kind]=arr.filter(v=>v.id!==x);localStorage.setItem(KEY,JSON.stringify(db));renderAll();showToast('已刪除，雲端資料同步完成');}catch(e){console.error('deleteRecord',e);showToast('刪除失敗：'+(e.message||'請稍後重試'));}}
+async function deleteRecord(kind,x){const tableMap={tasks:'tasks',expenses:'expenses',notes:'notes',worklogs:'work_logs'},arr=db[kind];if(!tableMap[kind]||!arr)return;if(!confirm('確定要永久刪除這筆資料？刪除後無法復原。'))return;try{if(!currentUser||!cloudReady||!supabaseClient)throw new Error('雲端尚未就緒，請重新登入後再刪除');const {error}=await supabaseClient.from(tableMap[kind]).delete().eq('id',x).eq('user_id',currentUser.id);if(error)throw error;db[kind]=arr.filter(v=>v.id!==x);localStorage.setItem(KEY+'_'+currentUser.id,JSON.stringify(db));renderAll();showToast('已刪除，雲端資料同步完成');}catch(e){console.error('deleteRecord',e);showToast('刪除失敗：'+(e.message||'請稍後重試'));}}
 
 // v19：生活管理模組，資料獨立存放於 lifestyle_items，依登入者 RLS 隔離。
 
 // v20.1：只保留生活管理固定扣款與記帳連動；不含銀行／信用卡／雲端發票匯入。
 let financeInbox=[];
-async function loadFinanceInbox(){if(!supabaseClient||!currentUser)return;const {data,error}=await supabaseClient.from('finance_inbox').select('*').eq('status','pending').eq('source','subscription').order('transaction_date',{ascending:false});if(error)throw error;financeInbox=data||[];renderFinanceInbox();}
+async function loadFinanceInbox(){if(!supabaseClient||!currentUser)return;const uid=currentUser.id,token=authLoadToken;const {data,error}=await supabaseClient.from('finance_inbox').select('*').eq('user_id',uid).eq('status','pending').eq('source','subscription').order('transaction_date',{ascending:false});if(error)throw error;if(token!==authLoadToken||currentUser?.id!==uid)return;financeInbox=data||[];renderFinanceInbox();}
 function renderFinanceInbox(){const el=document.getElementById('financeInboxList');if(!el)return;const c=document.getElementById('financeInboxCount');if(c)c.textContent=financeInbox.length+' 筆';el.innerHTML=financeInbox.length?financeInbox.map(x=>`<div class="list-row" style="align-items:flex-start"><div style="min-width:0;flex:1"><b>${esc(x.title)}</b><div class="sub">${esc(x.transaction_date||'日期未確認')}・${esc(x.category||'訂閱')}・生活管理固定扣款</div><b style="display:block;margin-top:4px">NT$ ${Number(x.amount||0).toLocaleString('zh-TW')}</b>${x.note?`<div class="sub">${esc(x.note)}</div>`:''}</div><div class="record-actions"><button class="mini-btn" onclick="confirmFinanceInbox('${x.id}')">確認入帳</button><button class="mini-btn danger" onclick="ignoreFinanceInbox('${x.id}')">忽略</button></div></div>`).join(''):'<div class="empty">目前沒有待確認固定扣款</div>';}
 async function generateSubscriptionDrafts(){if(!supabaseClient||!currentUser||!cloudReady)return;const todayStr=today();for(const sub of lifeItems.filter(x=>x.kind==='subscription'&&x.details?.auto_finance&&Number(x.details.amount)>0&&x.details.date)){const d={...sub.details};let due=d.date;let generated=(d.generated_keys||[]).slice();let guard=0;while(due<=todayStr&&guard<24){const key=sub.id+':'+due;if(!generated.includes(key)){const payload={user_id:currentUser.id,source:'subscription',source_key:key,title:sub.title,amount:Number(d.amount),category:d.category||'訂閱',transaction_date:due,note:'由生活管理固定扣款產生；請確認是否已實際扣款。',status:'pending'};const {error}=await supabaseClient.from('finance_inbox').upsert(payload,{onConflict:'user_id,source_key',ignoreDuplicates:true});if(error)throw error;generated.push(key);}const dt=new Date(due+'T12:00:00+08:00');if(d.cycle==='yearly')dt.setFullYear(dt.getFullYear()+1);else dt.setMonth(dt.getMonth()+1);const originalDay=Number(due.slice(8,10));if(dt.getDate()!==originalDay)dt.setDate(0);due=dateInTaipei(dt);guard++;}
 if(generated.length!==(d.generated_keys||[]).length){const {error}=await supabaseClient.from('lifestyle_items').update({details:{...d,generated_keys:generated},updated_at:new Date().toISOString()}).eq('id',sub.id).eq('user_id',currentUser.id);if(error)throw error;sub.details={...d,generated_keys:generated};}}}
@@ -786,7 +839,7 @@ function renderFinanceSummary(){const el=document.getElementById('financeMonthly
 
 let lifeItems=[];
 const LIFE_TYPES={habit:'習慣追蹤',subscription:'固定扣款',reminder:'重要期限',wishlist:'願望清單',trip:'旅行／活動'};
-async function loadLifeItems(){if(!supabaseClient||!currentUser)return;const {data,error}=await supabaseClient.from('lifestyle_items').select('*').order('created_at',{ascending:false});if(error)throw error;lifeItems=(data||[]).map(r=>({id:r.id,kind:r.kind,title:r.title,details:r.details||{},created_at:r.created_at}));refreshLife();if(cloudReady)await refreshFinanceInbox();}
+async function loadLifeItems(){if(!supabaseClient||!currentUser)return;const uid=currentUser.id,token=authLoadToken;const {data,error}=await supabaseClient.from('lifestyle_items').select('*').eq('user_id',uid).order('created_at',{ascending:false});if(error)throw error;if(token!==authLoadToken||currentUser?.id!==uid)return;lifeItems=(data||[]).map(r=>({id:r.id,kind:r.kind,title:r.title,details:r.details||{},created_at:r.created_at}));refreshLife();if(cloudReady)await refreshFinanceInbox();}
 function refreshLife(){const todayStr=today(),soon=new Date();soon.setDate(soon.getDate()+30);const due=lifeItems.filter(x=>x.kind==='reminder'&&x.details.date>=todayStr&&x.details.date<=soon.toISOString().slice(0,10));const habits=lifeItems.filter(x=>x.kind==='habit');const done=habits.filter(x=>(x.details.done_dates||[]).includes(todayStr)).length;const monthly=lifeItems.filter(x=>x.kind==='subscription').reduce((a,x)=>a+Number(x.details.amount||0)*(x.details.cycle==='yearly'?1/12:1),0);const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('lifeHabitToday',`${done}/${habits.length}`);set('lifeDueSoon',due.length);set('lifeWishlistCount',lifeItems.filter(x=>x.kind==='wishlist'&&!x.details.purchased).length);set('lifeRecurringTotal',money(monthly));renderLifeItems();}
 function renderLifeItems(){const el=document.getElementById('lifeItemsList');if(!el)return;const q=(document.getElementById('lifeSearch')?.value||'').toLowerCase(),f=document.getElementById('lifeFilter')?.value||'all';const rows=lifeItems.filter(x=>(f==='all'||x.kind===f)&&(`${x.title} ${JSON.stringify(x.details)}`).toLowerCase().includes(q));el.innerHTML=rows.length?rows.map(x=>{const d=x.details||{};let meta=LIFE_TYPES[x.kind]||x.kind;if(x.kind==='habit')meta+=`・${d.frequency||'每日'}`;if(x.kind==='subscription')meta+=`・NT$ ${Number(d.amount||0).toLocaleString()}・${d.cycle==='yearly'?'每年':'每月'}${d.auto_finance?'・連動記帳':''}`;if(x.kind==='reminder')meta+=`・${d.date||'未設定日期'}`;if(x.kind==='wishlist')meta+=`・預估 NT$ ${Number(d.amount||0).toLocaleString()}${d.purchased?'・已購買':''}`;if(x.kind==='trip')meta+=`・${d.start||''} ～ ${d.end||''}`;return `<div class="list-row"><div style="min-width:0;flex:1"><b>${esc(x.title)}</b><div class="sub">${esc(meta)}</div>${d.note?`<div class="sub">${esc(d.note)}</div>`:''}${x.kind==='habit'?`<button class="mini-btn" onclick="toggleLifeHabit('${x.id}')">${(d.done_dates||[]).includes(today())?'取消今日完成':'✓ 今日完成'}</button>`:''}</div><div class="record-actions"><button class="mini-btn" onclick="editLifeItem('${x.id}')">編輯</button><button class="mini-btn danger" onclick="deleteLifeItem('${x.id}')">刪除</button></div></div>`}).join(''):'<div class="empty">目前沒有符合條件的項目</div>';}
 function lifeForm(x={kind:'habit',title:'',details:{}}){const d=x.details||{},kind=x.kind;let fields='';if(kind==='habit')fields=`<div class="field"><label>頻率</label><select id="liFrequency"><option>每日</option><option>每週 3 次</option><option>每週 1 次</option><option>自訂</option></select></div>`;if(kind==='subscription')fields=`<div class="field"><label>金額</label><input id="liAmount" type="number" min="0" value="${Number(d.amount||0)}"></div><div class="field"><label>扣款週期</label><select id="liCycle"><option value="monthly" ${d.cycle!=='yearly'?'selected':''}>每月</option><option value="yearly" ${d.cycle==='yearly'?'selected':''}>每年</option></select></div><div class="field"><label>下次扣款日</label><input id="liDate" type="date" value="${esc(d.date||'')}"></div><div class="field"><label>記帳分類</label><select id="liSubCategory">${['訂閱','娛樂','生活','通訊','交通','其他'].map(v=>`<option ${((d.category||'訂閱')===v)?'selected':''}>${v}</option>`).join('')}</select></div><div class="field"><label><input id="liAutoFinance" type="checkbox" ${d.auto_finance===true?'checked':''} style="width:auto"> 自動建立待確認記帳紀錄</label><div class="notice">到期後先建立待確認支出，不會直接當成已付款；確認後才正式計入記帳。</div></div>`;if(kind==='reminder')fields=`<div class="field"><label>到期日</label><input id="liDate" type="date" value="${esc(d.date||'')}"></div><div class="field"><label>提前提醒天數</label><select id="liLead"><option>0</option><option>7</option><option>14</option><option>30</option></select></div>`;if(kind==='wishlist')fields=`<div class="field"><label>預估價格</label><input id="liAmount" type="number" min="0" value="${Number(d.amount||0)}"></div><div class="field"><label>優先度</label><select id="liPriority"><option>想要</option><option>需要</option><option>有空再買</option></select></div><div class="field"><label><input id="liPurchased" type="checkbox" ${d.purchased?'checked':''} style="width:auto"> 已購買</label></div>`;if(kind==='trip')fields=`<div class="field"><label>開始日期</label><input id="liStart" type="date" value="${esc(d.start||'')}"></div><div class="field"><label>結束日期</label><input id="liEnd" type="date" value="${esc(d.end||'')}"></div><div class="field"><label>地點</label><input id="liLocation" value="${esc(d.location||'')}"></div><div class="field"><label>預算</label><input id="liAmount" type="number" min="0" value="${Number(d.amount||0)}"></div>`;return `<h3>${x.id?'編輯':'新增'}${LIFE_TYPES[kind]}</h3>${x.id?'':`<div class="field"><label>類型</label><select id="liKind" onchange="changeLifeKind()">${Object.entries(LIFE_TYPES).map(([k,v])=>`<option value="${k}" ${kind===k?'selected':''}>${v}</option>`).join('')}</select></div>`}<div class="field"><label>名稱</label><input id="liTitle" maxlength="120" value="${esc(x.title)}" placeholder="輸入名稱"></div><div id="liDynamic">${fields}</div><div class="field"><label>備註</label><textarea id="liNote">${esc(d.note||'')}</textarea></div><button class="primary" onclick="saveLifeItem('${x.id||''}','${kind}')">儲存</button>`;}
@@ -822,7 +875,7 @@ async function fetchSavedPostPreview(){
  }catch(e){console.warn('social preview failed',e);status.textContent='自動辨識未成功。網址已保留，你可以直接手動輸入標題、內容、作者或圖片，照常收藏。';showToast('無法自動辨識，請改用手動輸入');}
  finally{btn.disabled=false;btn.textContent='✦ 重新辨識貼文內容';}
 }
-async function loadSavedPosts(){if(!supabaseClient||!currentUser)return;const {data,error}=await supabaseClient.from('saved_posts').select('*').order('created_at',{ascending:false});if(error)throw error;savedPosts=data||[];renderSavedPosts();}
+async function loadSavedPosts(){if(!supabaseClient||!currentUser)return;const uid=currentUser.id,token=authLoadToken;const {data,error}=await supabaseClient.from('saved_posts').select('*').eq('user_id',uid).order('created_at',{ascending:false});if(error)throw error;if(token!==authLoadToken||currentUser?.id!==uid)return;savedPosts=data||[];renderSavedPosts();}
 function renderSavedPosts(){const box=document.getElementById('savedPostList');if(!box)return;const q=(document.getElementById('savedPostSearch')?.value||'').trim().toLowerCase(),f=document.getElementById('savedPostFilter')?.value||'all';let rows=savedPosts.filter(x=>(f==='all'||x.platform===f)&&(!q||[x.title,x.post_content,x.author,x.note,x.url,(x.tags||[]).join(' ')].join(' ').toLowerCase().includes(q)));const count=document.getElementById('savedPostCount');if(count)count.textContent=`${savedPosts.length} 筆`;const labels={instagram:'Instagram',threads:'Threads',x:'X',facebook:'Facebook',other:'其他'};box.innerHTML=rows.length?rows.map(x=>`<div class="list-row" style="align-items:flex-start"><div style="min-width:0;flex:1">${x.cover_url?`<img src="${esc(x.cover_url)}" alt="收藏封面" style="width:100%;max-height:170px;object-fit:cover;border-radius:11px;margin-bottom:8px" onerror="this.style.display='none'">`:''}<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="pill">${labels[x.platform]||'其他'}</span><span class="sub">${new Date(x.created_at).toLocaleDateString('zh-TW')}</span></div><b style="display:block;margin-top:6px;overflow-wrap:anywhere">${esc(x.title||'未命名貼文')}</b>${x.author?`<div class="sub">作者：${esc(x.author)}</div>`:''}${x.post_content?`<div style="font-size:12px;white-space:pre-wrap;margin-top:7px;line-height:1.6">${esc(x.post_content.length>500?x.post_content.slice(0,500)+'…':x.post_content)}</div>`:''}${x.tags?.length?`<div class="sub" style="margin-top:4px">${x.tags.map(t=>'#'+esc(t)).join('　')}</div>`:''}${x.note?`<div style="font-size:12px;white-space:pre-wrap;margin-top:7px">備註：${esc(x.note)}</div>`:''}<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:8px;color:var(--blue);font-size:12px">開啟原貼文 ↗</a></div><div class="record-actions" style="flex-direction:column"><button class="mini-btn" onclick="editSavedPost('${x.id}')">編輯</button><button class="mini-btn danger" onclick="deleteSavedPost('${x.id}')">刪除</button></div></div>`).join(''):'<div class="empty">沒有符合條件的收藏</div>';}
 function clearSavedPostForm(){['spUrl','spTitle','spContent','spAuthor','spTags','spNote','spCover'].forEach(id=>document.getElementById(id).value='');document.getElementById('spPlatform').value='instagram';document.getElementById('spFetchStatus').textContent='貼上網址後可自動辨識平台並擷取公開資訊，包含 Threads 分享連結；若平台限制讀取，仍可手動填寫。';document.getElementById('spFetchBtn').textContent='✦ 自動辨識貼文內容';}
 function openSavedPostForm(x={}){openModal(`<h3>${x.id?'編輯':'新增'}貼文收藏</h3><div class="field"><label>貼文網址</label><input id="speUrl" type="url" value="${esc(x.url||'')}"></div><div class="field"><label>平台</label><select id="spePlatform">${[['instagram','Instagram'],['threads','Threads'],['x','X'],['facebook','Facebook'],['other','其他']].map(([v,l])=>`<option value="${v}" ${x.platform===v?'selected':''}>${l}</option>`).join('')}</select></div><div class="field"><label>標題</label><input id="speTitle" maxlength="180" value="${esc(x.title||'')}"></div><div class="field"><label>貼文內容／摘要</label><textarea id="speContent">${esc(x.post_content||'')}</textarea></div><div class="field"><label>作者</label><input id="speAuthor" maxlength="100" value="${esc(x.author||'')}"></div><div class="field"><label>標籤（逗號分隔）</label><input id="speTags" value="${esc((x.tags||[]).join(', '))}"></div><div class="field"><label>備註</label><textarea id="speNote">${esc(x.note||'')}</textarea></div><div class="field"><label>封面圖片網址</label><input id="speCover" type="url" value="${esc(x.cover_url||'')}"></div><button class="primary" onclick="saveEditedSavedPost('${x.id||''}')">儲存</button>`);}
@@ -835,16 +888,16 @@ let deferredInstallPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('installAppBtn');if(b)b.style.display='inline-block';});
 window.addEventListener('appinstalled',()=>{const b=document.getElementById('installAppBtn');if(b)b.style.display='none';showToast('My Life OS 已安裝');});
 async function installMyLifeOS(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;const b=document.getElementById('installAppBtn');if(b)b.style.display='none';return;}openModal('<h3>將 My Life OS 加入主畫面</h3><div class="report-block"><b>iPhone／iPad（Safari）</b><p>點選 Safari 下方「分享」圖示，再選擇「加入主畫面」。</p></div><div class="report-block"><b>Android（Chrome）</b><p>點選右上角選單，再選擇「安裝應用程式」或「加到主畫面」。</p></div><button class="primary" onclick="closeModal()">知道了</button>');}
-document.getElementById('todayDate').textContent=new Date().toLocaleDateString('zh-TW');initAuth();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').then(()=>console.info('PWA service worker ready')).catch(e=>console.warn('PWA service worker unavailable',e));
-// v20.3 Oracle center
+document.getElementById('todayDate').textContent=new Date().toLocaleDateString('zh-TW');initAuth();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20.4').then(()=>console.info('PWA service worker ready')).catch(e=>console.warn('PWA service worker unavailable',e));
+// v20.3 Oracle center（v20.4 account isolation patch）
 let oracleDraft=null,oracleBusy=false;
 function clearOracleForm(){['oracleQuestion','oracleSpread','oracleCards','oracleImage'].forEach(x=>document.getElementById(x).value='');document.getElementById('oracleResult').innerHTML='<div class="empty">輸入問題與牌面後開始解讀。</div>';document.getElementById('oracleSaveBtn').disabled=true;document.getElementById('oracleResultStatus').textContent='尚未解讀';oracleDraft=null;}
 function oracleFileData(file){return new Promise((ok,no)=>{if(!file)return ok(null);if(!/^image\/(png|jpeg|webp)$/.test(file.type))return no(Error('只支援 PNG、JPG、WebP'));if(file.size>5*1024*1024)return no(Error('照片請小於 5MB'));let r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(Error('照片讀取失敗'));r.readAsDataURL(file);});}
 async function submitOracleReading(){if(oracleBusy)return;let type=document.getElementById('oracleType').value,source=document.getElementById('oracleSource').value,q=document.getElementById('oracleQuestion').value.trim(),spread=document.getElementById('oracleSpread').value.trim(),cards=document.getElementById('oracleCards').value.trim(),file=document.getElementById('oracleImage').files[0];if(!q)return showToast('請先輸入問題');if(type!=='life'&&!cards&&!file)return showToast('請輸入牌面／籤詩或上傳照片');if(!supabaseClient||!currentUser)return showToast('請先登入');oracleBusy=true;let btn=document.getElementById('oracleReadBtn');btn.disabled=true;document.getElementById('oracleResultStatus').textContent='AI 解讀中…';try{let img=await oracleFileData(file),label={lenormand:'雷諾曼 36 張',sibilla:'西比拉卡 52 張',tarot:'傳統塔羅 78 張',temple:'宮廟籤詩',life:'生活疑難分析'}[type];let prompt=`你是 My Life OS 占卜的專業解讀助理。解讀類型：${label}。使用者問題：${q}。牌陣／籤別：${spread||'未指定'}。使用者貼上的牌面、籤詩或外部 AI 提示詞：\n${cards||'請辨識附圖。'}\n來源：${source==='stargazer'?"Stargazer's Oracle":source==='other'?'其他網站':'實體牌／手動輸入'}。請先列出辨識到的牌名、順序、正逆位、牌位或籤詩；不清楚處標記待確認，不可自行補牌或杜撰。再先給直白結論，接著逐張／逐句解釋、牌與牌組合、整體走向、阻礙、可採取的現實行動與反例。雷諾曼要重視連讀及具體事件線索；西比拉卡重視人物、關係和情境；塔羅依牌位與正逆位；籤詩區分籤文、典故和推論；生活疑難整理事實、未知、選項、利弊、風險和下一步。不得把象徵解讀說成確定預言，也不可聲稱知道他人真實想法。繁體中文，深入具體。`;let {data:{session},error}=await supabaseClient.auth.getSession();if(error||!session?.access_token)throw Error('登入已失效');let res=await fetch(SUPABASE_URL+'/functions/v1/ai-chat',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({message:prompt,department:'生活總管',oracle_mode:true,image_data_url:img,timezone:'Asia/Taipei',client_datetime:taipeiDateTime()})});let data=await res.json();if(!res.ok)throw Error(data.error||'AI 服務錯誤');oracleDraft={reading_type:type,source,question:q,spread,cards,interpretation:data.reply,raw_input:prompt};let out=document.getElementById('oracleResult');out.innerHTML='';let p=document.createElement('div');p.style.cssText='white-space:pre-wrap;font-size:13px;line-height:1.85';p.textContent=data.reply;out.appendChild(p);document.getElementById('oracleResultStatus').textContent='解讀完成，尚未儲存';document.getElementById('oracleSaveBtn').disabled=false;}catch(e){document.getElementById('oracleResult').textContent='解讀失敗：'+e.message;document.getElementById('oracleResultStatus').textContent='解讀失敗';}finally{oracleBusy=false;btn.disabled=false;}}
 async function saveOracleReading(){if(!oracleDraft||!currentUser)return showToast('沒有可儲存的解讀');let b=document.getElementById('oracleSaveBtn');b.disabled=true;try{let {error}=await supabaseClient.from('oracle_readings').insert({user_id:currentUser.id,...oracleDraft});if(error)throw error;showToast('占卜紀錄已保存');document.getElementById('oracleResultStatus').textContent='已保存';await loadOracleReadings();}catch(e){b.disabled=false;showToast('保存失敗：'+e.message);}}
-async function loadOracleReadings(){let el=document.getElementById('oracleReadingList');if(!el||!currentUser)return;try{let {data,error}=await supabaseClient.from('oracle_readings').select('*').order('created_at',{ascending:false}).limit(50);if(error)throw error;let n={lenormand:'雷諾曼',sibilla:'西比拉卡',tarot:'塔羅',temple:'宮廟籤詩',life:'生活疑難'};el.innerHTML=data.length?data.map(r=>`<div class="list-row"><div style="flex:1;min-width:0"><b>${esc(n[r.reading_type]||r.reading_type)}｜${esc(r.question)}</b><div class="sub">${new Date(r.created_at).toLocaleString('zh-TW',{timeZone:'Asia/Taipei'})}</div></div><div class="record-actions"><button class="mini-btn" onclick="viewOracleReading('${r.id}')">查看</button><button class="mini-btn danger" onclick="deleteOracleReading('${r.id}')">刪除</button></div></div>`).join(''):'<div class="empty">目前沒有占卜紀錄。</div>';}catch(e){el.innerHTML='<div class="empty">讀取失敗：請先執行 v20.3 SQL。</div>';}}
-async function viewOracleReading(idv){let {data,error}=await supabaseClient.from('oracle_readings').select('*').eq('id',idv).single();if(error||!data)return showToast('讀取失敗');openModal(`<h3>${esc(data.question)}</h3><p class="sub">${esc(data.reading_type)}・${esc(data.spread||'未指定牌陣')}</p><div style="white-space:pre-wrap;line-height:1.8;font-size:13px">${esc(data.interpretation)}</div><button class="secondary" onclick="closeModal()">關閉</button>`);}
-async function deleteOracleReading(idv){if(!confirm('確定刪除這筆占卜紀錄？'))return;let {error}=await supabaseClient.from('oracle_readings').delete().eq('id',idv);if(error)return showToast('刪除失敗：'+error.message);loadOracleReadings();showToast('已刪除');}
+async function loadOracleReadings(){let el=document.getElementById('oracleReadingList');if(!el||!currentUser)return;try{let {data,error}=await supabaseClient.from('oracle_readings').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(50);if(error)throw error;let n={lenormand:'雷諾曼',sibilla:'西比拉卡',tarot:'塔羅',temple:'宮廟籤詩',life:'生活疑難'};el.innerHTML=data.length?data.map(r=>`<div class="list-row"><div style="flex:1;min-width:0"><b>${esc(n[r.reading_type]||r.reading_type)}｜${esc(r.question)}</b><div class="sub">${new Date(r.created_at).toLocaleString('zh-TW',{timeZone:'Asia/Taipei'})}</div></div><div class="record-actions"><button class="mini-btn" onclick="viewOracleReading('${r.id}')">查看</button><button class="mini-btn danger" onclick="deleteOracleReading('${r.id}')">刪除</button></div></div>`).join(''):'<div class="empty">目前沒有占卜紀錄。</div>';}catch(e){el.innerHTML='<div class="empty">讀取失敗：請先執行 v20.4 帳號隔離 SQL。</div>';}}
+async function viewOracleReading(idv){let {data,error}=await supabaseClient.from('oracle_readings').select('*').eq('id',idv).eq('user_id',currentUser.id).single();if(error||!data)return showToast('讀取失敗');openModal(`<h3>${esc(data.question)}</h3><p class="sub">${esc(data.reading_type)}・${esc(data.spread||'未指定牌陣')}</p><div style="white-space:pre-wrap;line-height:1.8;font-size:13px">${esc(data.interpretation)}</div><button class="secondary" onclick="closeModal()">關閉</button>`);}
+async function deleteOracleReading(idv){if(!confirm('確定刪除這筆占卜紀錄？'))return;let {error}=await supabaseClient.from('oracle_readings').delete().eq('id',idv).eq('user_id',currentUser.id);if(error)return showToast('刪除失敗：'+error.message);loadOracleReadings();showToast('已刪除');}
 document.addEventListener('change',e=>{if(e.target?.id==='oracleImage'){let f=e.target.files[0];document.getElementById('oracleImagePreview').textContent=f?'已選擇：'+f.name:'';}});
 
 </script></body></html>

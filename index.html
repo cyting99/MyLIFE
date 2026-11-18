@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#24364b">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="My Life OS">
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>My Life OS v20.8｜待辦與行事曆</title>
+<title>My Life OS v20.9｜待辦與行事曆</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#24364b;--navy2:#314962;--bg:#f4f6f8;--card:#fff;--ink:#202b38;--muted:#778391;--line:#e7ebef;--blue:#52749a;--green:#4e8068;--gold:#a77c3d;--rose:#a35f7c;--shadow:0 8px 28px rgba(32,48,65,.07)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:calc(84px + env(safe-area-inset-bottom))}.app{max-width:760px;margin:auto;padding:18px 16px 24px}.top{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 18px}.brand{font-weight:800;letter-spacing:.3px;font-size:20px}.brand small{display:block;font-size:10px;letter-spacing:1.7px;color:var(--muted);font-weight:600;margin-top:3px}.avatar{width:38px;height:38px;border-radius:50%;background:#e5ebf1;color:var(--navy);display:grid;place-items:center;font-weight:700}.hero{background:linear-gradient(135deg,#24364b,#3b5873);color:white;padding:22px;border-radius:22px;box-shadow:var(--shadow)}.eyebrow{font-size:10px;letter-spacing:1.5px;color:#c5d2df}.hero h1{font-size:24px;margin:9px 0 6px}.hero p{margin:0;color:#d6e0e9;font-size:13px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:20px}.stat{background:#ffffff18;border:1px solid #ffffff20;border-radius:13px;padding:11px}.stat b{display:block;font-size:23px}.stat span{font-size:11px;color:#d6e0e9}.section{margin-top:23px}.section-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 11px}.section-head h2{font-size:16px;margin:0}.sub{font-size:11px;color:var(--muted)}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:14px;box-shadow:0 3px 14px rgba(32,48,65,.025)}.task{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}.task:last-child{border:0;padding-bottom:0}.check{width:21px;height:21px;border:1.5px solid #c7d0d9;border-radius:7px;flex:none;display:grid;place-items:center;background:white;color:white}.check.done{background:var(--green);border-color:var(--green)}.task-main{min-width:0;flex:1}.task-title{font-size:13px;font-weight:650;overflow-wrap:anywhere}.task-meta{font-size:10px;color:var(--muted);margin-top:4px}.pill{font-size:10px;padding:4px 8px;border-radius:20px;background:#f1f3f5;color:#697684;white-space:nowrap}.high{background:#f9e9e8;color:#a34f4a}.medium{background:#fbf2e4;color:#956c2f}.low{background:#eaf1eb;color:#4e8068}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.tile{background:white;border:1px solid var(--line);border-radius:16px;padding:15px 8px;text-align:center;cursor:pointer;box-shadow:0 3px 14px rgba(32,48,65,.025)}.tile .ico{width:38px;height:38px;border-radius:13px;background:#edf1f5;margin:0 auto 8px;display:grid;place-items:center;font-size:19px}.tile b{font-size:12px}.tile small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.quick-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.quick-grid .tile{aspect-ratio:1/1;min-width:0;padding:8px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}.quick-grid .tile .ico{width:36px;height:36px;flex:none;margin:0 auto 6px}.quick-grid .tile b{font-size:12px;line-height:1.35;overflow-wrap:anywhere}.quick-grid .tile small{font-size:9px;line-height:1.35;max-width:100%;overflow-wrap:anywhere}@media(min-width:600px){.quick-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}.chatbox{display:flex;gap:8px;margin-top:10px}.chatbox input,.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:#fbfcfd;border-radius:12px;padding:12px;font:inherit;font-size:13px;outline:none}.chatbox button,.primary{border:0;border-radius:12px;background:var(--navy);color:white;padding:0 17px;font-weight:650}.notice{font-size:11px;color:var(--muted);line-height:1.6;margin-top:9px}.bottom{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(15px);border-top:1px solid var(--line);padding:9px 10px calc(9px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:10}.nav{width:min(760px,100%);display:grid;grid-template-columns:repeat(6,1fr)}.nav button{border:0;background:none;color:#8a95a0;font-size:10px;padding:5px 0;display:grid;gap:4px;justify-items:center}.nav button span{font-size:19px}.nav button.active{color:var(--navy);font-weight:750}.page{display:none}.page.active{display:block}.page-title{font-size:23px;margin:9px 0 5px}.page-desc{color:var(--muted);font-size:12px;margin:0 0 18px}.actions{display:flex;gap:8px;flex-wrap:wrap}.primary{padding:11px 15px;font-size:12px;cursor:pointer}.secondary{padding:10px 14px;border:1px solid var(--line);background:white;border-radius:12px;font-size:12px;color:var(--ink)}.field{margin:12px 0}.field label{display:block;font-size:11px;color:var(--muted);margin:0 0 6px}.field textarea{min-height:75px;resize:vertical}.list-row{padding:12px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;font-size:13px}.list-row:last-child{border:0}.empty{padding:25px 10px;text-align:center;color:var(--muted);font-size:12px}.bubble{padding:12px 13px;border-radius:14px;background:#eef2f6;font-size:13px;line-height:1.6;margin:9px 0;white-space:pre-wrap}.bubble.user{background:#e5edf5;margin-left:35px}.bubble.ai{margin-right:20px}.tag{font-size:10px;color:var(--blue);font-weight:700}.modal{position:fixed;inset:0;background:#17243277;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.show{display:flex}.sheet{background:white;width:min(760px,100%);border-radius:22px 22px 0 0;padding:22px 18px calc(24px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}.sheet h3{margin:0 0 15px}.sheet .primary{width:100%;margin-top:9px}.toast{position:fixed;bottom:95px;left:50%;transform:translateX(-50%);background:#24364b;color:white;padding:10px 15px;border-radius:20px;font-size:12px;display:none;z-index:30}.muted{color:var(--muted)}.money{font-size:25px;font-weight:800}.report-block{margin:12px 0}.report-block b{font-size:12px}.report-block p{font-size:12px;color:#647180;line-height:1.7;margin:5px 0}.divider{height:1px;background:var(--line);margin:12px 0}
@@ -50,7 +50,7 @@
 </div>
 </div></section>
 <main class="app" id="mainApp" aria-hidden="false" inert>
-<header class="top"><div class="brand">My Life OS<small>PERSONAL LIFE MANAGEMENT · v20.8</small></div><div class="actions" style="align-items:center"><button class="secondary" id="installAppBtn" onclick="installMyLifeOS()" style="display:none;font-size:11px">安裝 App</button><button class="secondary" id="accountButton" onclick="signOut()" style="font-size:11px">登出</button></div></header>
+<header class="top"><div class="brand">My Life OS<small>PERSONAL LIFE MANAGEMENT · v20.9</small></div><div class="actions" style="align-items:center"><button class="secondary" id="installAppBtn" onclick="installMyLifeOS()" style="display:none;font-size:11px">安裝 App</button><button class="secondary" id="accountButton" onclick="signOut()" style="font-size:11px">登出</button></div></header>
 <section id="home" class="page active">
 <div class="hero"><div class="eyebrow" id="todayDate">PERSONAL DASHBOARD</div><h1>今天，想先處理什麼？</h1><p>工作、生活與重要事項，都從這裡開始。</p><div class="stats"><div class="stat"><b id="taskCount">0</b><span>未完成待辦</span></div><div class="stat"><b id="eventCount">0</b><span>今日行程</span></div><div class="stat"><b id="expenseTotal">$0</b><span>本月支出</span></div></div></div>
 <div class="section"><div class="section-head"><h2>近期行程</h2><button class="mini-btn" onclick="showPage('tasks')">開啟行事曆</button></div><div class="card" id="homeCalendarPreview"><div class="empty">新增行程後，這裡會顯示近期安排。</div></div></div>
@@ -289,11 +289,16 @@ async function showSignedIn(user){
   if(!user?.id)return;
   if(loadingUserId===user.id && (cloudReady||authLoadInProgress))return;
   const changedUser=!!currentUser&&currentUser.id!==user.id;
-  if(!currentUser||changedUser||loadingUserId!==user.id){
-    authLoadToken++;clearAccountScopedState();
+  if(changedUser){
+    authLoadToken++;
+    clearAccountScopedState();
   }
   currentUser=user;loadingUserId=user.id;cloudReady=false;authLoadInProgress=true;
-  // 重新整理時維持主畫面，不切換成登入頁或載入卡片；資料完成載入前暫停操作。
+  // 先恢復目前帳號自己的快取，再顯示主畫面；絕不讀取未分帳號的舊版共用 KEY。
+  db=loadAccountScopedDB(user.id);
+  restoreAccountCalendarCache(user.id);
+  renderAll();
+  // 主畫面保持原位，背景同步完成前暫停操作，避免快取與雲端資料競寫。
   const app=document.getElementById('mainApp');
   if(app){app.classList.remove('hidden');app.setAttribute('aria-hidden','false');app.setAttribute('inert','');}
   document.getElementById('authPanel').classList.add('hidden');
@@ -324,10 +329,13 @@ async function showSignedIn(user){
   }catch(e){
     if(token!==authLoadToken)return;
     cloudReady=false;authLoadInProgress=false;
-    // 資料讀取失敗不等於 Supabase 登出；保留已驗證的 session，清空畫面資料並允許重試。
-    clearAccountScopedState();
-    showAuthScreen('帳號仍保持登入，但個人資料載入失敗：'+(e.message||'未知錯誤')+'。請按下方按鈕重試；不需要重新註冊或清除資料。',true);
-    console.error('account data load',e);
+    // 雲端同步失敗不等於登出；保留已恢復的帳號快取與主畫面，不清空、不跳登入頁。
+    const app=document.getElementById('mainApp');
+    if(app){app.classList.remove('hidden');app.setAttribute('aria-hidden','false');app.removeAttribute('inert');}
+    document.getElementById('authPanel').classList.add('hidden');
+    renderAll();
+    showToast('雲端同步暫時失敗，先顯示此帳號上次保存的資料：'+(e.message||'請稍後重試'));
+    console.error('account data load; cached account data retained',e);
   }
 }
 async function signIn(){
@@ -355,6 +363,39 @@ async function signOut(){
 }
 const KEY='mylifeos_v1';let db=emptyPersonalDB();
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{tasks:[],expenses:[],notes:[],messages:[],worklogs:[]}}catch(e){return{tasks:[],expenses:[],notes:[],messages:[],worklogs:[]}}}
+function loadAccountScopedDB(uid){
+  const empty=emptyPersonalDB();
+  if(!uid)return empty;
+  try{
+    const raw=localStorage.getItem(KEY+'_'+uid);
+    if(!raw)return empty;
+    const saved=JSON.parse(raw);
+    if(!saved||typeof saved!=='object'||Array.isArray(saved))return empty;
+    return {...empty,...saved,
+      tasks:Array.isArray(saved.tasks)?saved.tasks:[],
+      expenses:Array.isArray(saved.expenses)?saved.expenses:[],
+      notes:Array.isArray(saved.notes)?saved.notes:[],
+      messages:Array.isArray(saved.messages)?saved.messages:[],
+      worklogs:Array.isArray(saved.worklogs)?saved.worklogs:[]
+    };
+  }catch(e){console.warn('account cache unavailable',e);return empty;}
+}
+function accountCalendarCacheKey(uid){
+  const y=calendarMonth.getFullYear(),m=String(calendarMonth.getMonth()+1).padStart(2,'0');
+  return 'mylifeos_calendar_v1_'+uid+'_'+y+'-'+m;
+}
+function restoreAccountCalendarCache(uid){
+  try{
+    const raw=localStorage.getItem(accountCalendarCacheKey(uid));
+    if(!raw)return false;
+    const saved=JSON.parse(raw);
+    if(!Array.isArray(saved))return false;
+    calendarEvents=saved;
+    updateCalendarStatus();
+    renderCalendar();
+    return true;
+  }catch(e){console.warn('calendar cache unavailable',e);return false;}
+}
 function id(){return (crypto.randomUUID?crypto.randomUUID():('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)})))}
 function save(){
   if(currentUser?.id)localStorage.setItem(KEY+'_'+currentUser.id,JSON.stringify(db));
@@ -765,6 +806,8 @@ async function loadCalendar(){
   const linkedIds=new Set(localEvents.map(e=>e.google_event_id).filter(Boolean));
   googleEvents=googleEvents.filter(e=>!linkedIds.has(e.id));
   calendarEvents=[...localEvents,...googleEvents].sort((a,b)=>eventStart(a).localeCompare(eventStart(b)));
+  try{localStorage.setItem(accountCalendarCacheKey(uid),JSON.stringify(calendarEvents));}
+  catch(cacheError){console.warn('calendar cache save skipped',cacheError);}
   updateCalendarStatus();renderCalendar();
 }
 function changeCalendarMonth(delta){calendarMonth=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+delta,1);loadCalendar();}
@@ -911,8 +954,8 @@ let deferredInstallPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('installAppBtn');if(b)b.style.display='inline-block';});
 window.addEventListener('appinstalled',()=>{const b=document.getElementById('installAppBtn');if(b)b.style.display='none';showToast('My Life OS 已安裝');});
 async function installMyLifeOS(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;const b=document.getElementById('installAppBtn');if(b)b.style.display='none';return;}openModal('<h3>將 My Life OS 加入主畫面</h3><div class="report-block"><b>iPhone／iPad（Safari）</b><p>點選 Safari 下方「分享」圖示，再選擇「加入主畫面」。</p></div><div class="report-block"><b>Android（Chrome）</b><p>點選右上角選單，再選擇「安裝應用程式」或「加到主畫面」。</p></div><button class="primary" onclick="closeModal()">知道了</button>');}
-document.getElementById('todayDate').textContent=new Date().toLocaleDateString('zh-TW');initAuth();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20.8').then(()=>console.info('PWA service worker ready')).catch(e=>console.warn('PWA service worker unavailable',e));
-// v20.3 Oracle center（v20.7 seamless session restore patch）
+document.getElementById('todayDate').textContent=new Date().toLocaleDateString('zh-TW');initAuth();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20.9').then(()=>console.info('PWA service worker ready')).catch(e=>console.warn('PWA service worker unavailable',e));
+// v20.3 Oracle center（v20.9 account-scoped cache-first restore patch）
 let oracleDraft=null,oracleBusy=false;
 function clearOracleForm(){['oracleQuestion','oracleSpread','oracleCards','oracleImage'].forEach(x=>document.getElementById(x).value='');document.getElementById('oracleResult').innerHTML='<div class="empty">輸入問題與牌面後開始解讀。</div>';document.getElementById('oracleSaveBtn').disabled=true;document.getElementById('oracleResultStatus').textContent='尚未解讀';oracleDraft=null;}
 function oracleFileData(file){return new Promise((ok,no)=>{if(!file)return ok(null);if(!/^image\/(png|jpeg|webp)$/.test(file.type))return no(Error('只支援 PNG、JPG、WebP'));if(file.size>5*1024*1024)return no(Error('照片請小於 5MB'));let r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(Error('照片讀取失敗'));r.readAsDataURL(file);});}

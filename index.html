@@ -48,13 +48,13 @@
 </div>
 </div></section>
 <main class="app hidden" id="mainApp" aria-hidden="true">
-<header class="top"><div class="brand">My Life OS<small>PERSONAL LIFE MANAGEMENT · v20.4</small></div><div class="actions" style="align-items:center"><button class="secondary" id="installAppBtn" onclick="installMyLifeOS()" style="display:none;font-size:11px">安裝 App</button><button class="secondary" id="accountButton" onclick="signOut()" style="font-size:11px">登出</button></div></header>
+<header class="top"><div class="brand">My Life OS<small>PERSONAL LIFE MANAGEMENT · v20.5</small></div><div class="actions" style="align-items:center"><button class="secondary" id="installAppBtn" onclick="installMyLifeOS()" style="display:none;font-size:11px">安裝 App</button><button class="secondary" id="accountButton" onclick="signOut()" style="font-size:11px">登出</button></div></header>
 <section id="home" class="page active">
 <div class="hero"><div class="eyebrow" id="todayDate">PERSONAL DASHBOARD</div><h1>今天，想先處理什麼？</h1><p>工作、生活與重要事項，都從這裡開始。</p><div class="stats"><div class="stat"><b id="taskCount">0</b><span>未完成待辦</span></div><div class="stat"><b id="eventCount">0</b><span>今日行程</span></div><div class="stat"><b id="expenseTotal">$0</b><span>本月支出</span></div></div></div>
 <div class="section"><div class="section-head"><h2>近期行程</h2><button class="mini-btn" onclick="showPage('tasks')">開啟行事曆</button></div><div class="card" id="homeCalendarPreview"><div class="empty">新增行程後，這裡會顯示近期安排。</div></div></div>
 <div class="section"><div class="section-head"><h2>今天的任務</h2><button class="secondary" onclick="openTask()">＋ 新增</button></div><div class="card" id="homeTasks"></div></div>
 <div class="section"><div class="section-head"><h2>快速入口</h2><span class="sub">常用功能一鍵直達</span></div><div class="grid quick-grid">
-<div class="tile" onclick="showPage('tasks')"><div class="ico">☷</div><b>代辦與行事曆</b><small>任務、行程與提醒</small></div>
+<div class="tile" onclick="showPage('tasks')"><div class="ico">☷</div><b>待辦與行事曆</b><small>任務、行程與提醒</small></div>
 <div class="tile" onclick="showPage('chat')"><div class="ico">✧</div><b>管家</b><small>AI 助理與需求分流</small></div>
 <div class="tile" onclick="showPage('work')"><div class="ico">💼</div><b>工作</b><small>工作紀錄與專業工具</small></div>
 <div class="tile" onclick="showPage('finance')"><div class="ico">💰</div><b>記帳</b><small>收支與個人預算</small></div>
@@ -69,7 +69,7 @@
 </div></div>
 <div class="section"><div class="section-head"><h2>AI 管家快速提問</h2><span class="sub">不用先切換部門</span></div><div class="card"><div class="muted" style="font-size:12px;line-height:1.6">直接輸入需求，選擇交給哪個功能；選「自動判斷」時會依內容分流。例：「明天整理競品分析」或「今天午餐 120 元」。</div><div class="field" style="margin:10px 0 7px"><label for="quickDepartment">交給哪個部門</label><select id="quickDepartment"><option value="auto">自動判斷</option><option value="生活總管">管家</option><option value="行銷部">工作（含行銷工具）</option><option value="追星達人">追星</option><option value="戀愛腦">感情</option></select></div><div class="chatbox"><input id="quickInput" placeholder="輸入今天想處理的事…" onkeydown="if(event.key==='Enter')quickSend()"><button onclick="quickSend()">送出</button></div><div class="notice">AI 會先整理回覆或資料草稿；涉及新增資料時，必須按「確認新增」，並收到雲端保存成功訊息才算完成。</div></div></div><div class="section"><div class="section-head"><h2>本週快速回顧</h2><button class="mini-btn" onclick="showPage('reports')">完整回顧</button></div><div class="card" id="homeWeeklyPreview"><div class="empty">載入本週摘要中…</div></div></div>
 </section>
-<section id="tasks" class="page"><h1 class="page-title">代辦與行事曆</h1><p class="page-desc">工作、生活與個人事項統一管理；代辦和行程都在這裡。</p><div class="actions"><button class="primary" onclick="openTask()">＋ 新增代辦</button></div><div class="section"><div class="section-head"><h2>所有待辦</h2><span class="sub">依完成狀態管理</span></div><div class="card" id="allTasks"></div></div>  <div class="section" id="calendarSection">
+<section id="tasks" class="page"><h1 class="page-title">待辦與行事曆</h1><p class="page-desc">工作、生活與個人事項統一管理；待辦和行程都在這裡。</p><div class="actions"><button class="primary" onclick="openTask()">＋ 新增待辦</button></div><div class="section"><div class="section-head"><h2>所有待辦</h2><span class="sub">依完成狀態管理</span></div><div class="card" id="allTasks"></div></div>  <div class="section" id="calendarSection">
     <div class="section-head"><h2>行事曆</h2><span class="sub" id="calendarStatus">尚未連結</span></div>
     <div class="card">
       <div class="notice" style="margin:0 0 10px">不連結外部服務也能使用 My Life OS 原生日曆。Google 可進行帳號連接與行程同步；TimeTree 目前不開放第三方 API，因此提供快速開啟與手機外部日曆使用指引，不會假裝已完成自動同步。</div><div class="actions" style="align-items:center;margin-bottom:10px"><button class="primary" id="calendarConnectBtn" onclick="calendarConnect()">連結 Google 日曆（選用）</button><button class="secondary" id="calendarDisconnectBtn" onclick="calendarDisconnect()" style="display:none">解除連結</button><button class="secondary" onclick="loadCalendar()">重新整理</button></div><div class="card" style="background:#f8fafc;margin:10px 0;padding:12px"><b style="font-size:13px">TimeTree 使用入口</b><p class="notice" style="margin:5px 0 9px">可開啟 TimeTree 網頁版；若要在 TimeTree 手機 App 顯示 My Life OS 以外的行程，請先將該行事曆同步至手機原生日曆，再授權 TimeTree 讀取。TimeTree 行程不會自動回寫到 My Life OS。</p><div class="actions"><button class="secondary" onclick="openTimeTree()">開啟 TimeTree</button><button class="secondary" onclick="showTimeTreeGuide()">查看同步教學</button></div></div>
@@ -215,7 +215,7 @@ function showAuthScreen(message){
 async function initAuth(){
   if(!supabaseReady()){authMessage('尚未設定連線資訊：請在程式碼中填入 Project URL 與 Publishable key。');return;}
   if(!window.supabase){authMessage('Supabase 元件載入失敗，請確認網路連線後重新整理。');return;}
-  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage}});
   // 先訂閱登入狀態，再讀取 session，避免初始化期間漏接帳號切換事件。
   supabaseClient.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){
@@ -225,16 +225,20 @@ async function initAuth(){
       authMessage('驗證成功，請設定新密碼。');
       return;
     }
-    if(session) void showSignedIn(session.user);
-    else{
+    // 只有明確的 SIGNED_OUT 事件才清除帳號狀態。
+    // INITIAL_SESSION / TOKEN_REFRESHED 等事件可能在初始化期間帶有 null，不能一律當成使用者登出。
+    if(event==='SIGNED_OUT'){
       authLoadToken++;authLoadInProgress=false;currentUser=null;clearAccountScopedState();
       showAuthScreen('已登出，請登入或建立帳號。');
+      return;
     }
+    if(session) void showSignedIn(session.user);
   });
+  // getSession() 是頁面重整後恢復登入狀態的依據；明確使用 localStorage 持久化。
   const {data,error}=await supabaseClient.auth.getSession();
-  if(error){showAuthScreen('連線檢查失敗：'+error.message);return;}
+  if(error){showAuthScreen('登入狀態恢復失敗：'+error.message+'。請確認瀏覽器允許此網站使用本機儲存空間。');return;}
   if(data.session) await showSignedIn(data.session.user);
-  else showAuthScreen('連線成功，請登入或建立帳號。');
+  else showAuthScreen('目前沒有保存的登入狀態，請登入或建立帳號。');
 }
 function showForgotPassword(){
   document.getElementById('forgotPanel').classList.remove('hidden');
@@ -510,7 +514,7 @@ function openChat(department){
   history.innerHTML = '';
   const greetings = {
     '行銷部':'嗨！這裡是行銷部。可以輸入每日工作紀錄、KOL 行銷任務或內容企劃需求。目前可使用 AI 對話，資料保存請使用專屬紀錄頁面。',
-    '生活部':'可以協助拆解代辦、安排優先順序與規劃行程；請從管家統一提出需求。',
+    '生活部':'可以協助拆解待辦、安排優先順序與規劃行程；請從管家統一提出需求。',
     '追星達人':'嗨！這裡是追星。可以輸入藝人活動、演唱會、售票資訊或追星行程需求。目前尚未連接即時網路搜尋與通知服務。',
     '戀愛腦':'嗨！這裡是感情。可以輸入感情困擾、互動情境或訊息草稿，協助整理思路。目前尚未連接真正的 AI 專家服務。'
   };
@@ -889,13 +893,13 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredIns
 window.addEventListener('appinstalled',()=>{const b=document.getElementById('installAppBtn');if(b)b.style.display='none';showToast('My Life OS 已安裝');});
 async function installMyLifeOS(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;const b=document.getElementById('installAppBtn');if(b)b.style.display='none';return;}openModal('<h3>將 My Life OS 加入主畫面</h3><div class="report-block"><b>iPhone／iPad（Safari）</b><p>點選 Safari 下方「分享」圖示，再選擇「加入主畫面」。</p></div><div class="report-block"><b>Android（Chrome）</b><p>點選右上角選單，再選擇「安裝應用程式」或「加到主畫面」。</p></div><button class="primary" onclick="closeModal()">知道了</button>');}
 document.getElementById('todayDate').textContent=new Date().toLocaleDateString('zh-TW');initAuth();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js?v=20.4').then(()=>console.info('PWA service worker ready')).catch(e=>console.warn('PWA service worker unavailable',e));
-// v20.3 Oracle center（v20.4 account isolation patch）
+// v20.3 Oracle center（v20.5 account isolation patch）
 let oracleDraft=null,oracleBusy=false;
 function clearOracleForm(){['oracleQuestion','oracleSpread','oracleCards','oracleImage'].forEach(x=>document.getElementById(x).value='');document.getElementById('oracleResult').innerHTML='<div class="empty">輸入問題與牌面後開始解讀。</div>';document.getElementById('oracleSaveBtn').disabled=true;document.getElementById('oracleResultStatus').textContent='尚未解讀';oracleDraft=null;}
 function oracleFileData(file){return new Promise((ok,no)=>{if(!file)return ok(null);if(!/^image\/(png|jpeg|webp)$/.test(file.type))return no(Error('只支援 PNG、JPG、WebP'));if(file.size>5*1024*1024)return no(Error('照片請小於 5MB'));let r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(Error('照片讀取失敗'));r.readAsDataURL(file);});}
 async function submitOracleReading(){if(oracleBusy)return;let type=document.getElementById('oracleType').value,source=document.getElementById('oracleSource').value,q=document.getElementById('oracleQuestion').value.trim(),spread=document.getElementById('oracleSpread').value.trim(),cards=document.getElementById('oracleCards').value.trim(),file=document.getElementById('oracleImage').files[0];if(!q)return showToast('請先輸入問題');if(type!=='life'&&!cards&&!file)return showToast('請輸入牌面／籤詩或上傳照片');if(!supabaseClient||!currentUser)return showToast('請先登入');oracleBusy=true;let btn=document.getElementById('oracleReadBtn');btn.disabled=true;document.getElementById('oracleResultStatus').textContent='AI 解讀中…';try{let img=await oracleFileData(file),label={lenormand:'雷諾曼 36 張',sibilla:'西比拉卡 52 張',tarot:'傳統塔羅 78 張',temple:'宮廟籤詩',life:'生活疑難分析'}[type];let prompt=`你是 My Life OS 占卜的專業解讀助理。解讀類型：${label}。使用者問題：${q}。牌陣／籤別：${spread||'未指定'}。使用者貼上的牌面、籤詩或外部 AI 提示詞：\n${cards||'請辨識附圖。'}\n來源：${source==='stargazer'?"Stargazer's Oracle":source==='other'?'其他網站':'實體牌／手動輸入'}。請先列出辨識到的牌名、順序、正逆位、牌位或籤詩；不清楚處標記待確認，不可自行補牌或杜撰。再先給直白結論，接著逐張／逐句解釋、牌與牌組合、整體走向、阻礙、可採取的現實行動與反例。雷諾曼要重視連讀及具體事件線索；西比拉卡重視人物、關係和情境；塔羅依牌位與正逆位；籤詩區分籤文、典故和推論；生活疑難整理事實、未知、選項、利弊、風險和下一步。不得把象徵解讀說成確定預言，也不可聲稱知道他人真實想法。繁體中文，深入具體。`;let {data:{session},error}=await supabaseClient.auth.getSession();if(error||!session?.access_token)throw Error('登入已失效');let res=await fetch(SUPABASE_URL+'/functions/v1/ai-chat',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({message:prompt,department:'生活總管',oracle_mode:true,image_data_url:img,timezone:'Asia/Taipei',client_datetime:taipeiDateTime()})});let data=await res.json();if(!res.ok)throw Error(data.error||'AI 服務錯誤');oracleDraft={reading_type:type,source,question:q,spread,cards,interpretation:data.reply,raw_input:prompt};let out=document.getElementById('oracleResult');out.innerHTML='';let p=document.createElement('div');p.style.cssText='white-space:pre-wrap;font-size:13px;line-height:1.85';p.textContent=data.reply;out.appendChild(p);document.getElementById('oracleResultStatus').textContent='解讀完成，尚未儲存';document.getElementById('oracleSaveBtn').disabled=false;}catch(e){document.getElementById('oracleResult').textContent='解讀失敗：'+e.message;document.getElementById('oracleResultStatus').textContent='解讀失敗';}finally{oracleBusy=false;btn.disabled=false;}}
 async function saveOracleReading(){if(!oracleDraft||!currentUser)return showToast('沒有可儲存的解讀');let b=document.getElementById('oracleSaveBtn');b.disabled=true;try{let {error}=await supabaseClient.from('oracle_readings').insert({user_id:currentUser.id,...oracleDraft});if(error)throw error;showToast('占卜紀錄已保存');document.getElementById('oracleResultStatus').textContent='已保存';await loadOracleReadings();}catch(e){b.disabled=false;showToast('保存失敗：'+e.message);}}
-async function loadOracleReadings(){let el=document.getElementById('oracleReadingList');if(!el||!currentUser)return;try{let {data,error}=await supabaseClient.from('oracle_readings').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(50);if(error)throw error;let n={lenormand:'雷諾曼',sibilla:'西比拉卡',tarot:'塔羅',temple:'宮廟籤詩',life:'生活疑難'};el.innerHTML=data.length?data.map(r=>`<div class="list-row"><div style="flex:1;min-width:0"><b>${esc(n[r.reading_type]||r.reading_type)}｜${esc(r.question)}</b><div class="sub">${new Date(r.created_at).toLocaleString('zh-TW',{timeZone:'Asia/Taipei'})}</div></div><div class="record-actions"><button class="mini-btn" onclick="viewOracleReading('${r.id}')">查看</button><button class="mini-btn danger" onclick="deleteOracleReading('${r.id}')">刪除</button></div></div>`).join(''):'<div class="empty">目前沒有占卜紀錄。</div>';}catch(e){el.innerHTML='<div class="empty">讀取失敗：請先執行 v20.4 帳號隔離 SQL。</div>';}}
+async function loadOracleReadings(){let el=document.getElementById('oracleReadingList');if(!el||!currentUser)return;try{let {data,error}=await supabaseClient.from('oracle_readings').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(50);if(error)throw error;let n={lenormand:'雷諾曼',sibilla:'西比拉卡',tarot:'塔羅',temple:'宮廟籤詩',life:'生活疑難'};el.innerHTML=data.length?data.map(r=>`<div class="list-row"><div style="flex:1;min-width:0"><b>${esc(n[r.reading_type]||r.reading_type)}｜${esc(r.question)}</b><div class="sub">${new Date(r.created_at).toLocaleString('zh-TW',{timeZone:'Asia/Taipei'})}</div></div><div class="record-actions"><button class="mini-btn" onclick="viewOracleReading('${r.id}')">查看</button><button class="mini-btn danger" onclick="deleteOracleReading('${r.id}')">刪除</button></div></div>`).join(''):'<div class="empty">目前沒有占卜紀錄。</div>';}catch(e){el.innerHTML='<div class="empty">讀取失敗：請先執行 v20.5 帳號隔離 SQL。</div>';}}
 async function viewOracleReading(idv){let {data,error}=await supabaseClient.from('oracle_readings').select('*').eq('id',idv).eq('user_id',currentUser.id).single();if(error||!data)return showToast('讀取失敗');openModal(`<h3>${esc(data.question)}</h3><p class="sub">${esc(data.reading_type)}・${esc(data.spread||'未指定牌陣')}</p><div style="white-space:pre-wrap;line-height:1.8;font-size:13px">${esc(data.interpretation)}</div><button class="secondary" onclick="closeModal()">關閉</button>`);}
 async function deleteOracleReading(idv){if(!confirm('確定刪除這筆占卜紀錄？'))return;let {error}=await supabaseClient.from('oracle_readings').delete().eq('id',idv).eq('user_id',currentUser.id);if(error)return showToast('刪除失敗：'+error.message);loadOracleReadings();showToast('已刪除');}
 document.addEventListener('change',e=>{if(e.target?.id==='oracleImage'){let f=e.target.files[0];document.getElementById('oracleImagePreview').textContent=f?'已選擇：'+f.name:'';}});
